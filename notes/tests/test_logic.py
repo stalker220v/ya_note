@@ -4,6 +4,7 @@ from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from pytils.translit import slugify
 
 # Импортируем из файла с формами список стоп-слов и предупреждение формы.
 # Загляните в news/forms.py, разберитесь с их назначением.
@@ -18,6 +19,7 @@ class TestNoteCreation(TestCase):
     # поэтому запишем его в атрибуты класса.
     NOTE_TEXT = 'Текст заметки'
     NOTE_TITLE = 'Заголовок'
+    SLUG = '23'
 
     @classmethod
     def setUpTestData(cls):
@@ -30,6 +32,7 @@ class TestNoteCreation(TestCase):
         cls.form_data = {
             'text': cls.NOTE_TEXT,
             'title': cls.NOTE_TITLE,
+            'slug': cls.SLUG
         }
 
     def test_anonymous_user_cant_create_note(self):
@@ -60,21 +63,26 @@ class TestNoteCreation(TestCase):
     def test_dabl_slug(self):
         """Проверяем уникальность slug"""
         self.note = Note.objects.create(
-            title='pfv', text='uofyyt', slug='23', author=self.user)
-        # Формируем данные для отправки формы; текст включает
-        # первое слово из списка стоп-слов.
-        queryset = Note.objects.values('slug')
-        print(queryset)
-        bad_slug = {'slug': {queryset}}
-        # Отправляем запрос через авторизованный клиент.
-        response = self.auth_client.post(self.url, data=bad_slug)
-        # Проверяем, есть ли в ответе ошибка формы.
+            title=self.NOTE_TITLE,
+            text=self.NOTE_TEXT,
+            slug=self.SLUG,
+            author=self.user
+        )
+        response = self.auth_client.post(self.url, data=self.form_data)
         self.assertFormError(
             response,
             form='form',
-            field='text',
-            errors=print(bad_slug)
+            field='slug',
+            errors=self.SLUG + WARNING
         )
-        # Дополнительно убедимся, что комментарий не был создан.
-        # note_count = Note.objects.count()
-        # self.assertEqual(note_count, 0)
+
+    def test_auto_slug(self):
+        self.note = Note.objects.create(
+            title=self.NOTE_TITLE,
+            text=self.NOTE_TEXT,
+            author=self.user
+        )
+        note1 = Note.objects.get()
+        self.assertEqual(note1.slug, slugify(self.form_data['title']))
+
+
