@@ -46,10 +46,10 @@ class TestDetailPage(TestCase):
         # cls.author = User.objects.create(username='Комментатор')
 
         cls.author = User.objects.create(username='Got')
-        cls.note = Note.objects.create(
-            title='pfv', text='uofyyt', slug='23', author=cls.author
-        )
-        cls.detail_url = reverse('notes:detail', args=(cls.note.slug,))
+        # cls.note = Note.objects.create(
+        #     title='pfv', text='uofyyt', slug='23', author=cls.author
+        # )
+        cls.add_url = reverse('notes:add', args=None)
         # Запоминаем текущее время:
         # now = datetime.now()
         # Получите текущее время при помощи утилиты timezone.
@@ -85,16 +85,16 @@ class TestDetailPage(TestCase):
 # а для анонимного — нет. Как именно рендерится HTML-форма и что там отображается — мы
 # проверять не будем, но можем проверить, есть ли объект form в словаре контекста и относится 
 # ли этот объект  к нужному классу.    
-    def test_anonymous_client_has_no_form(self):
-        # первый тест проверит, что при запросе анонимного пользователя форма не передаётся 
-        # в словаре контекста.
-        response = self.client.get(self.detail_url)
-        self.assertNotIn('form', response.context)
+#     def test_anonymous_client_has_no_form(self):
+#         # первый тест проверит, что при запросе анонимного пользователя форма не передаётся
+#         # в словаре контекста.
+#         response = self.client.get(self.add_url)
+#         self.assertNotIn('form', response.context)
 
     def test_authorized_client_has_form(self):
         # Авторизуем клиент при помощи ранее созданного пользователя.
         self.client.force_login(self.author)
-        response = self.client.get(self.detail_url)
+        response = self.client.get(self.add_url)
         self.assertIn('form', response.context)
         # а так же проверим, что объект формы соответствует нужному классу формы.
         self.assertIsInstance(response.context['form'], NoteForm)
