@@ -59,6 +59,19 @@ class TestRoutes(TestCase):
                     response = self.client.get(url)
                     self.assertEqual(response.status_code, status)
 
+    def page_available_for_authorized_user(self):
+        urls = (
+            ('notes:list', None),
+            ('notes:success', None),
+            ('notes:add', None),
+        )
+        for name, args in urls:
+            self.client.force_login(self.author)
+            with self.subTest(name=name):
+                url = reverse(name, args=args)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_redirect_for_anonymous_client(self):
         # Сохраняем адрес страницы логина:
         login_url = reverse('users:login')

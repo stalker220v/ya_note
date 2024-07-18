@@ -40,7 +40,7 @@ class TestNoteCreation(TestCase):
         }
 
     def test_anonymous_user_cant_create_note(self):
-        """Проверяем отправку формы создания заметки гостем"""
+        """Проверяем отправку создания заметки гостем"""
         # Совершаем запрос от анонимного клиента, в POST-запросе отправляем
         # предварительно подготовленные данные формы с текстом комментария.
         self.client.post(self.url, data=self.form_data)
@@ -50,7 +50,7 @@ class TestNoteCreation(TestCase):
         self.assertEqual(notes_count, 0)
 
     def test_user_can_create_note(self):
-        """Проверяем отправку формы создания заметки юзером"""
+        """Проверяем отправку создания заметки залогиненым юзером"""
         # Совершаем запрос через авторизованный клиент.
         self.auth_client.post(self.url, data=self.form_data)
         # Считаем количество комментариев.
@@ -81,6 +81,7 @@ class TestNoteCreation(TestCase):
         )
 
     def test_auto_slug(self):
+        """Проверяем автоматическое создание slug"""
         self.note = Note.objects.create(
             title=NOTE_TITLE,
             text=NOTE_TEXT,
@@ -112,6 +113,7 @@ class TestNoteEditDelete(TestCase):
         }
 
     def test_author_delete_note(self):
+        """Проверяем удаление автором"""
         # От имени автора комментария отправляем DELETE-запрос на удаление.
         response = self.author_client.delete(self.url_delete)
         self.assertRedirects(response, self.url_success)
@@ -121,6 +123,7 @@ class TestNoteEditDelete(TestCase):
         self.assertEqual(note_count, 0)
 
     def test_reader_delete_note(self):
+        """Проверяем удаление гостем"""
         # Выполняем запрос на удаление от пользователя-читателя.
         response = self.reader_client.delete(self.url_delete)
         # Проверяем, что вернулась 404 ошибка.
@@ -131,6 +134,7 @@ class TestNoteEditDelete(TestCase):
         self.assertEqual(note_count, 1)
 
     def test_author_edit_note(self):
+        """Проверяем редактирование автором"""
         # Выполняем запрос на редактирование от имени автора комментария.
         response = self.author_client.post(self.url_edit, data=self.form_data)
         # Проверяем, что сработал редирект.
@@ -141,6 +145,7 @@ class TestNoteEditDelete(TestCase):
         self.assertEqual(self.note.text, NOTE_TEXT_NEW)
 
     def test_reader_edit_note(self):
+        """Проверяем редактирование гостем"""
         # Выполняем запрос на редактирование от имени автора комментария.
         response = self.reader_client.post(self.url_edit, data=self.form_data)
         # Проверяем, что сработал редирект.
